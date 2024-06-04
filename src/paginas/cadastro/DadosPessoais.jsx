@@ -5,7 +5,7 @@ import { ListaSupensa } from "../../componentes/ListaSuspensa/ListaSuspensa"
 import { Col, Row } from "react-grid-system"
 import { Botao } from "../../componentes/Botao/Botao"
 import { Link } from "react-router-dom"
-import { Formik } from 'formik';
+import { Form, Formik } from 'formik';
 
 const estadosBrasileiros = [
     { "text": "Acre", "value": "AC" },
@@ -38,18 +38,30 @@ const estadosBrasileiros = [
 ]
 const DadosPessoais = () => {
     return (
-        <Formik initialValues={{
-            nome: '',
-            estado: '',
-            cidade: '',
-            telefone: '',
-            email: '',
-            senha: '',
-            confirmarSenha: '',
-        }
-        }>
+        <Formik
+            initialValues={{
+                nome: '',
+                estado: '',
+                cidade: '',
+                telefone: '',
+                email: '',
+                senha: '',
+                confirmarSenha: '',
+            }}
+
+            validate={(values) => {
+                const errors = {};
+                if (!values.nome) errors.nome = 'Campo obrigatório';
+
+                if (!values.confirmarSenha) {
+                    errors.confirmarSenha = 'Campo obrigatório'
+                } else if (values.senha != values.confirmarSenha) {
+                    errors.confirmarSenha = 'As senhas não são iguais.'
+                }
+            }}
+        >
             {formik => {
-                <form>
+                <Form onSubmit={formik.handleSubmit}>
                     <div style={{ textAlign: 'center' }}>
                         <Tipografia variante="h1" componente="h1">
                             Crie seu cadastro
@@ -62,11 +74,8 @@ const DadosPessoais = () => {
                         <Col>
                             <CampoTexto
                                 titulo="Nome completo"
-                                valor={formik.values.nome}
-                                onChange={formik.handleChange}
-                                onBlur={formik.handleBlur}
-                                tipo='text'
-                                required
+                                name='nome'
+                                type='text'
                             />
                         </Col>
                     </Row>
@@ -75,19 +84,14 @@ const DadosPessoais = () => {
                             <ListaSupensa
                                 titulo="Estado"
                                 opcoes={estadosBrasileiros}
-                                valor={formik.values.estado}
-                                onChange={formik.handleChange}
-                                onBlur={formik.handleBlur}
+                                name='estado'
                             />
                         </Col>
                         <Col lg={8} md={8} sm={8}>
                             <CampoTexto
                                 titulo="Cidade"
-                                valor={formik.values.cidade}
-                                onChange={formik.handleChange}
-                                onBlur={formik.handleBlur}
-                                tipo='text'
-                                required
+                                name='cidade'
+                                type='text'
                             />
                         </Col>
                     </Row>
@@ -95,21 +99,15 @@ const DadosPessoais = () => {
                         <Col lg={6} md={6} sm={6}>
                             <CampoTexto
                                 titulo="E-mail"
-                                valor={formik.values.email}
-                                onChange={formik.handleChange}
-                                onBlur={formik.handleBlur}
-                                tipo='email'
-                                required
+                                name='email'
+                                type='email'
                             />
                         </Col>
                         <Col lg={6} md={6} sm={6}>
                             <CampoTexto
                                 titulo="Telefone"
-                                valor={formik.values.telefone}
-                                onChange={formik.handleChange}
-                                onBlur={formik.handleBlur}
-                                tipo='tel'
-                                required
+                                name='telefone'
+                                type='tel'
                             />
                         </Col>
                     </Row>
@@ -117,21 +115,15 @@ const DadosPessoais = () => {
                         <Col lg={6} md={6} sm={6}>
                             <CampoTexto
                                 titulo="Senha"
-                                valor={formik.values.senha}
-                                onChange={formik.handleChange}
-                                onBlur={formik.handleBlur}
-                                tipo='password'
-                                required
+                                name='senha'
+                                type='password'
                             />
                         </Col>
                         <Col lg={6} md={6} sm={6}>
                             <CampoTexto
                                 titulo="Confirme sua senha"
-                                valor={formik.values.confirmarSenha}
-                                onChange={formik.handleChange}
-                                onBlur={formik.handleBlur}
-                                tipo='password'
-                                required
+                                name='confirmarSenha'
+                                type='password'
                             />
                         </Col>
                     </Row>
@@ -153,7 +145,7 @@ const DadosPessoais = () => {
                             </div>
                         </Col>
                     </Row>
-                </form>
+                </Form>
             }}
         </Formik>
     );

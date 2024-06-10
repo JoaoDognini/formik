@@ -5,7 +5,7 @@ import { ListaSupensa } from "../../componentes/ListaSuspensa/ListaSuspensa"
 import { Col, Row } from "react-grid-system"
 import { Botao } from "../../componentes/Botao/Botao"
 import { Link } from "react-router-dom"
-import { Form, Formik } from 'formik';
+import { Field, Form, Formik } from 'formik';
 import * as Yup from 'yup';
 
 const estadosBrasileiros = [
@@ -38,15 +38,24 @@ const estadosBrasileiros = [
     { "text": "Tocantins", "value": "TO" }
 ]
 
-const schema = Yup.object().shape({
-    nome: Yup.string().required('Campo obrigatório'),
-    estado: Yup.string().required('Campo obrigatório'),
-    cidade: Yup.string().required('Campo obrigatório'),
-    telefone: Yup.string().required('Campo obrigatório'),
-    email: Yup.string().required('Campo obrigatório'),
-    senha: Yup.string().required('Campo obrigatório'),
-    confirmarSenha: Yup.string().required('Campo obrigatório')
+const formatarTelefone = (valor) => {
+    if (!valor) return;
 
+    const telefone = valor.replace(/\D/g, "")
+
+    return `(${telefone.slice(0, 2)}) ${telefone.slice(2, 7)}-${telefone.slice(7)}`
+}
+
+const schema = Yup.object().shape({
+    nome: Yup.string().trim().lowercase().required('Campo obrigatório').min(2, 'Digite seu nome completo'),
+    estado: Yup.string().required('Campo obrigatório'),
+    cidade: Yup.string().titlecase().required('Campo obrigatório').max(58, 'Digite uma cidade válida'),
+    telefone: Yup.string().required('Campo obrigatório').matches(/^\d{11}$/, 'Número de telefone inválido').transform(formatarTelefone),
+    email: Yup.string().required('Campo obrigatório').email('Email inválido'),
+    senha: Yup.string().required('Campo obrigatório'),
+    confirmarSenha: Yup.string().required('Campo obrigatório').oneOf([Yup.ref('senha'), null], 'As senhas não conferem'),
+    termos: Yup.boolean().oneOf([true], 'Você deve aceitar os termos'),
+    nascimento: Yup.date().required('Campo obrigatório').max(new Date(), 'Data inválida')
 })
 
 const DadosPessoais = () => {
@@ -62,37 +71,8 @@ const DadosPessoais = () => {
                 confirmarSenha: '',
             }}
 
-            validate={(values) => {
-                const errors = {};
-                if (!values.nome) {
-                    errors.nome = 'Campo obrigatório'
-                }
-                if (!values.estado) {
-                    errors.estado = 'Campo obrigatório';
-                }
-                if (!values.cidade) {
-                    errors.cidade = 'Campo obrigatório';
-                }
-                if (!values.senha) {
-                    errors.senha = 'Campo obrigatório';
-                }
-                if (!values.telefone) {
-                    errors.telefone = 'Campo obrigatório'
-                } else if (!/^\d{11}$/i.test(values.telefone)) {
-                    errors.telefone = 'Número de telefone inválido'
-                }
-                if (!values.email) {
-                    errors.email = 'Campo obrigatório'
-                } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(values.email)) {
-                    errors.email = 'Email inválido'
-                }
-                if (!values.confirmarSenha) {
-                    errors.confirmarSenha = 'Campo obrigatório'
-                } else if (values.senha != values.confirmarSenha) {
-                    errors.confirmarSenha = 'As senhas não conferem'
-                }
-                return errors;
-            }}
+            validationSchema={schema}
+
             onSubmit={(values) => {
                 console.log('dados do formulário', values)
             }}
@@ -114,6 +94,9 @@ const DadosPessoais = () => {
                                 name='nome'
                                 type='text'
                             />
+                        </Col>
+                        <Col>
+                            <CampoTexto titulo='Data de nascimento' type='date' name='nascimento' />
                         </Col>
                     </Row>
                     <Row>
@@ -164,6 +147,19 @@ const DadosPessoais = () => {
                             />
                         </Col>
                     </Row>
+                    <Row>
+                        <label>
+                            <Field type='checkbox' name='termos' />
+                            Aceite os termos e condições
+                        </label>
+                    </Row>
+                    {formik.errors.termos ? (
+                        <div style={{ color: 'red', marginTop: '4px' }}>
+                            {formik.errors.termos}
+                        </div>
+                    )
+                        : null
+                    }
                     <Row>
                         <Col lg={6} md={6} sm={6}>
                             <Link to="/cadastro/interesses">
